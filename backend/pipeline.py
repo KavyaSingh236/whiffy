@@ -15,7 +15,7 @@ class Brief(BaseModel):
     memory: str = Field(min_length=10, max_length=4000)
     notes: list[str] = Field(min_length=1, max_length=16)
     avoid: list[str] = Field(default_factory=list, max_length=16)
-    weights: dict[str, float] = Field(default_factory=dict, max_length=16)
+    weights: dict[str, int] = Field(default_factory=dict, max_length=16)
     owned: list[str] = Field(default_factory=list, max_length=7)
 
     @field_validator('notes', 'avoid')
@@ -28,7 +28,7 @@ class Brief(BaseModel):
     @field_validator('weights')
     @classmethod
     def valid_weights(cls, values):
-        if any(k not in TASKS or not 1 <= v <= 3 for k, v in values.items()):
+        if any(k not in TASKS or v not in (1, 2, 3) for k, v in values.items()):
             raise ValueError('Invalid note weights.')
         return values
 
