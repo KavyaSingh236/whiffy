@@ -1,85 +1,185 @@
-# Whiffy ✳
-### A little whiff of a memory.
+<div align="center">
 
-Whiffy turns a written or spoken scent memory into an editable scent brief, live molecular odor predictions, familiar home scent references, and perfumes to explore.
+# ☕ whiffy ✳
 
-Think jasmine outside a window, coffee in a grandmother’s kitchen, or old wooden bookshelves. Whiffy helps explore those details through molecular machine learning without claiming to recover the exact smell of the past.
+### *A little whiff of a memory.*
+
+Turn a written or spoken scent memory into an editable scent brief, **live molecular odor predictions**, familiar home scent references, and perfumes to explore.
+
+[**Live demo →**](https://kavyasingh236.github.io/whiffy/) 
+
+
+![Whiffy scent studio](images/hero.png)
+
+</div>
+
+---
+
+## What it does
+
+Jasmine outside a window. Coffee in a grandmother's kitchen. Old wooden bookshelves.
+
+You describe the memory. Whiffy extracts the scent notes, picks real molecules that could evoke them, scores those molecules with a **graph neural network (OpenPOM)**, and uses that evidence to suggest:
+
+- 🧪 **Molecular matches** with predicted odor-label probabilities
+- 🏠 **Home scent references** built from familiar materials
+- 🌸 **Perfumes to explore** from a sourced catalog
+
+It does this **without claiming to recover the exact smell of the past**. Whiffy is an exploration tool, and its limits are stated in the app.
+
+## Highlights
+
+- **No hallucinated chemistry.** The LLM only picks IDs from a fixed 30-molecule catalog. The backend resolves the SMILES.
+- **Real inference on every request.** RDKit validates structures, OpenPOM returns 138 odor-label probabilities and 256-d embeddings.
+- **No silent fallbacks.** If a service fails, the app shows an error and lets you retry. Nothing cached or keyword-based is passed off as a result.
+- **You stay in control.** Edit the extracted notes, exclusions, and importance sliders before anything is scored.
+- **Private by design.** Google sign-in, per-user memory shelf, Postgres row-level security.
+- **Voice or text input** via browser speech recognition.
+
+## Screenshots
+
+**1. Describe a memory**
+
+![Memory input](images/memory-input.png)
+
+**2. Confirm your scent notes**: edit notes, add exclusions, set importance.
+
+![Notes](images/notes.png)
+
+**3. Your scent echo**
+
+![Results](images/results.png)
+
+**4. Real OpenPOM molecular matches**
+
+![Molecules](images/molecules.png)
+
+**5. Bring it home** and **6. Find a perfume**
+
+| Home references | Perfumes to explore |
+| --- | --- |
+| ![Home](images/home.png) | ![Perfumes](images/perfumes.png) |
+
+**7. Keep it on your private memory shelf**
+
+![Memory shelf](images/memory-shelf.png)
 
 ## How it works
 
-1. **Describe a memory.** Type a story or use the microphone where browser speech recognition is supported.
-2. **LLM interpretation.** A server-side language model extracts wanted and unwanted OpenPOM odor labels. The user confirms the suggestions and adjusts their importance.
-3. **Grounded molecule selection.** The LLM selects candidate IDs from a catalog of 30 known molecules. The backend resolves their SMILES; the LLM cannot invent chemical structures.
-4. **Live OpenPOM inference.** RDKit validates the structures. OpenPOM scores the selected molecules during the request, producing 138 odor-label probabilities and 256-dimensional embeddings. Ranking rewards wanted notes and penalizes excluded notes.
-5. **Evidence-grounded recommendations.** A final LLM receives the actual model scores, the confirmed brief, approved household references, and a sourced perfume catalog. It writes a personal explanation and selects references and perfumes from those options.
-6. **Keep a little memory.** Download a text keepsake or save a compact result snapshot to a private, Google-authenticated memory shelf.
+1. **Describe a memory.** Type it or use the microphone.
+2. **LLM interpretation.** A server-side model proposes wanted and unwanted OpenPOM odor labels. You confirm and adjust importance.
+3. **Grounded molecule selection.** The LLM selects candidate IDs; the backend resolves SMILES. The LLM cannot invent structures.
+4. **Live OpenPOM inference.** Selected molecules are scored during the request. Ranking rewards wanted notes and penalizes excluded ones.
+5. **Evidence-grounded recommendations.** A final LLM sees the real model scores, your confirmed brief, approved household references, and the sourced perfume catalog, then writes the explanation and makes selections only from those options.
+6. **Keep a little memory.** Download a text keepsake or save a compact snapshot to your private shelf.
 
-There is no silent keyword, browser-LLM, or cached-prediction fallback in the live flow. If an external service or the model fails, the app displays an error and allows a retry.
+## The model's role
 
-## Features
+OpenPOM accepts **single-molecule SMILES**, not memories, fragrance notes, or mixtures. The LLM bridges language to molecules; OpenPOM supplies the molecular odor evidence the final LLM must use.
 
-- Editable scent notes, exclusions, and importance sliders.
-- Google sign-in, first-name greeting, private memory shelves, and sign-out.
-- Voice-to-text input with a typed-text alternative.
-- Real per-request OpenPOM predictions, SMILES, model scores, and molecular embedding neighbors.
-- Step-by-step home scent references using familiar materials, selected using model evidence.
-- Perfume names, source links, and brand-page photos when metadata is accessible.
-- Google Shopping and Amazon search links for the selected perfumes.
-- Responsive scrapbook-inspired interface with downloadable text keepsakes.
-
-## The model’s role
-
-OpenPOM accepts **single-molecule SMILES**, not memories, fragrance notes, or mixtures. The LLM bridges the language-to-molecule step, while OpenPOM supplies molecular odor evidence that the final LLM must use.
-
-The live runtime defaults to upstream **experiments_1** for a smaller CPU footprint. It supports 1–10 upstream checkpoints and reports the number actually used. Embeddings always come from experiments_1; independently trained embedding spaces are not averaged. A single-checkpoint deployment must not be described as reproducing an ensemble benchmark.
-
-The repository also retains a genuine historical 10-checkpoint prediction dataset for regression tests and reproducibility. The live frontend loads catalog metadata only; historical predictions are not substituted for live inference.
-
-## Recommendation limits
-
-Home instructions are approved sensory exercises selected by the LLM, rather than unrestricted generated chemistry recipes. They evoke parts of a memory using separate familiar materials; they are not validated blends, wearable formulations, or exact reconstructions.
-
-Perfume recommendations are limited to **seven sourced catalog entries**. Candidate selection uses confirmed notes and model-supported scent families, followed by LLM selection. The finished perfume’s formula and combined smell are not predicted by OpenPOM. Product photos are read from brand-page metadata when available; an explicitly labeled illustration appears if the image cannot be retrieved or displayed. Shopping links are search queries, not verified offers. Prices, stock, seller authenticity, and resemblance are not guaranteed.
-
-The model does not assess safety, allergies, regulations, skin suitability, or scent intensity. Some catalog structures leave stereochemistry unspecified. Exclusions filter known catalog notes; they do not establish the absence of an ingredient or allergen in a product.
+| Detail | Behavior |
+| --- | --- |
+| Default checkpoint | Upstream `experiments_1` (small CPU footprint) |
+| Supported | 1–10 upstream checkpoints; the app reports how many were actually used |
+| Embeddings | Always from `experiments_1`; independently trained spaces are never averaged |
+| Benchmarks | A single-checkpoint deployment is **not** described as reproducing an ensemble benchmark |
+| Historical data | A genuine 10-checkpoint prediction set is kept for regression tests only, never substituted for live inference |
 
 ## Architecture
 
 | Layer | Technology |
 | --- | --- |
 | Interface | HTML, CSS, JavaScript modules |
-| Speech input | Browser SpeechRecognition where supported |
-| Language model | Server-side Groq API or local Ollama |
+| Speech input | Browser SpeechRecognition (where supported) |
+| Language model | Groq API or local Ollama, server-side only |
 | API | Python 3.10, FastAPI, HTTPX |
-| Molecular ML | OpenPOM, PyTorch CPU, DeepChem, DGL, RDKit |
-| Accounts and storage | Supabase Auth, Google OAuth, PostgreSQL row-level security |
-| Delivery | GitHub Pages frontend workflow and Python backend Docker image |
+| Molecular ML | OpenPOM, PyTorch (CPU), DeepChem, DGL, RDKit |
+| Auth and storage | Supabase Auth, Google OAuth, PostgreSQL with row-level security |
+| Delivery | GitHub Pages (frontend), Docker image (backend) |
 
-GitHub Pages serves the interface; live inference requires a separately running Python backend. LLM credentials belong only in that backend’s environment. Google OAuth client secrets belong in Supabase. Public frontend configuration contains only the API origin, Supabase URL, and publishable key.
+GitHub Pages serves the interface only. **Live inference needs the Python backend running separately.** LLM keys live only in the backend environment, and Google OAuth secrets live in Supabase. The public frontend config contains just the API origin, Supabase URL, and publishable key.
 
-## Privacy and access
+## Privacy
 
-Submitting a memory sends its text to the backend and the configured LLM provider. Saving is a separate user action. Supabase stores saved memories under the authenticated user, with row-level security enforcing ownership. The backend validates bearer tokens through Supabase, limits per-account requests, and runs one live inference job at a time per process. These in-memory limits target a single-worker portfolio deployment, not a distributed production service.
+- Submitting a memory sends its text to the backend and the configured LLM provider.
+- **Saving is a separate, explicit action.** Drafts aren't stored.
+- Saved memories are tied to your account; row-level security enforces ownership.
+- The backend validates Supabase bearer tokens, rate-limits per account, and runs one inference job at a time per process (sized for a single-worker portfolio deployment).
+- Voice input may send audio to your browser vendor's speech service. Whiffy never stores recordings.
+- Brand photos and shopping links contact external sites.
 
-Voice transcription may send audio to the browser provider’s speech service. Whiffy does not store recordings. Brand photos and shopping links contact external services. There are no affiliate links.
+## Run locally
 
-## Repository
+<!-- TODO: verify these commands and env var names against the repo before publishing. -->
 
-- `dist/`: web interface, catalog, account and voice modules, historical prediction fixture.
-- `backend/`: authenticated API, grounded recommendation pipeline, live OpenPOM runtime, curated references, and model downloader.
-- `supabase/`: database schema, ownership policies, and isolation checks.
-- `tests/`: JavaScript checks for model ranking, accounts, speech, and live API behavior.
-- `.github/workflows/`: frontend test and deployment workflow plus backend unit tests.
-- `Dockerfile`: Python CPU backend image; upstream checkpoints download during build.
+**Backend**
 
-## Validation
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+# download upstream OpenPOM checkpoints (see backend model downloader)
+cp .env.example .env        # add LLM provider + Supabase settings
+uvicorn main:app --reload
+```
 
-Automated checks cover label validation, wanted/excluded-note handling, live evidence propagation into the final LLM prompt, rejection of invented molecule/product IDs, authentication, explicit failure behavior, compact saved snapshots, account switching, and microphone lifecycle behavior. The real CPU checkpoint was also exercised against all 30 catalog molecules and through an integration run with scripted LLM responses. External LLM calls, Google OAuth, product-image availability, and deployed database policies still require deployment-specific verification.
+**Frontend**
+
+```bash
+cd dist
+python -m http.server 8000
+```
+
+Point the frontend config at your backend origin and Supabase project.
+
+**Docker (backend)**
+
+```bash
+docker build -t whiffy-backend .
+docker run -p 8080:8080 --env-file backend/.env whiffy-backend
+```
+
+Checkpoints download during the image build.
+
+## Repository layout
+
+```
+dist/                 web interface, catalog, account + voice modules, historical fixture
+backend/              authenticated API, recommendation pipeline, OpenPOM runtime, references, downloader
+supabase/             schema, ownership policies, isolation checks
+tests/                JS checks: ranking, accounts, speech, live API behavior
+.github/workflows/    frontend test + deploy, backend unit tests
+Dockerfile            Python CPU backend image
+```
+
+## Testing
+
+Automated checks cover:
+
+- label validation and wanted/excluded-note handling
+- live model evidence reaching the final LLM prompt
+- rejection of invented molecule and product IDs
+- authentication and explicit failure behavior
+- compact saved snapshots and account switching
+- microphone lifecycle
+
+The real CPU checkpoint was also run against all 30 catalog molecules and in an integration run with scripted LLM responses.
+
 
 ## References
 
 - [OpenPOM source and checkpoints](https://github.com/ARY2260/openpom)
-- [A principal odor map unifies diverse tasks in olfactory perception — Lee et al., Science (2023)](https://doi.org/10.1126/science.ade4401)
-- Individual compound and brand source links are included with the app’s references.
+- Lee et al., [*A principal odor map unifies diverse tasks in olfactory perception*](https://doi.org/10.1126/science.ade4401), Science (2023)
+- Individual compound and brand source links are included in the app's references.
 
-Created by **Kavya Singh**.
+## Acknowledgements
+
+Built on the open-source OpenPOM project and the Principal Odor Map research from Lee et al.
+
+---
+
+<div align="center">
+
+Created by **Kavya Singh** · [Live demo](https://kavyasingh236.github.io/whiffy/)
+
+</div>
