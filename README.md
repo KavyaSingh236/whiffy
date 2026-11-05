@@ -1,93 +1,85 @@
-# Whiffy
-### A little whiff of a memory
+# Whiffy ✳
+### A little whiff of a memory.
 
-Whiffy explores a simple question: **what if you could find your way back to a memory through its scent?**
+Whiffy turns a written or spoken scent memory into an editable scent brief, live molecular odor predictions, familiar home scent references, and perfumes to explore.
 
-Describe a person, place, or moment—your grandmother’s kitchen, a garden after rain, a quiet bookshop—and Whiffy turns the remembered smells into an editable scent brief. It uses molecular odor predictions to find individual scent references, then suggests familiar materials or perfumes that may evoke parts of the scene.
-
-## Features
-
-- **Text or voice memories:** type a story or dictate it, then review and edit the words.
-- **A personal scent brief:** confirm wanted notes, remove unwanted ones, and adjust their importance.
-- **Molecular matches:** explore real OpenPOM predictions alongside molecular structures and descriptor scores.
-- **At-home scent references:** discover simple ways to explore familiar aspects of a memory using materials already available.
-- **Perfumes to explore:** browse fragrances with overlapping brand-published notes and explanations of where they may differ.
-- **Personal Memory Shelves:** Google sign-in and private account-based saving are supported when the authentication service is connected.
-- **Downloadable keepsakes:** keep a text copy of a memory and its results.
+Think jasmine outside a window, coffee in a grandmother’s kitchen, or old wooden bookshelves. Whiffy helps explore those details through molecular machine learning without claiming to recover the exact smell of the past.
 
 ## How it works
 
-1. **Describe the memory.** The visitor writes or speaks the scent details they remember.
-2. **Confirm the scent notes.** An on-device language model suggests descriptors. Local keyword extraction keeps the experience available when the language model is slow or unavailable.
-3. **Find molecular references.** OpenPOM’s odor-label predictions rank a curated catalog of individual molecules against the confirmed brief.
-4. **Explore the result.** The visitor inspects molecular evidence, familiar at-home references, and a separate selection of perfumes based on published notes.
-5. **Keep the memory.** Visitors can download a keepsake or, with a connected account service, save it to their private shelf.
+1. **Describe a memory.** Type a story or use the microphone where browser speech recognition is supported.
+2. **LLM interpretation.** A server-side language model extracts wanted and unwanted OpenPOM odor labels. The user confirms the suggestions and adjusts their importance.
+3. **Grounded molecule selection.** The LLM selects candidate IDs from a catalog of 30 known molecules. The backend resolves their SMILES; the LLM cannot invent chemical structures.
+4. **Live OpenPOM inference.** RDKit validates the structures. OpenPOM scores the selected molecules during the request, producing 138 odor-label probabilities and 256-dimensional embeddings. Ranking rewards wanted notes and penalizes excluded notes.
+5. **Evidence-grounded recommendations.** A final LLM receives the actual model scores, the confirmed brief, approved household references, and a sourced perfume catalog. It writes a personal explanation and selects references and perfumes from those options.
+6. **Keep a little memory.** Download a text keepsake or save a compact result snapshot to a private, Google-authenticated memory shelf.
 
-## The role of OpenPOM
+There is no silent keyword, browser-LLM, or cached-prediction fallback in the live flow. If an external service or the model fails, the app displays an error and allows a retry.
 
-OpenPOM is the molecular prediction engine behind Whiffy’s reference search. It processes molecular structures represented as SMILES and predicts scores across **138 odor labels**.
+## Features
 
-The app includes genuine cached inference for **30 individual molecules**, averaged across **10 trained OpenPOM models**. It also includes **256-dimensional embeddings** from one checkpoint for molecular-neighbor comparisons. Caching makes those results available in the browser without requiring a visitor to run a molecular ML server.
+- Editable scent notes, exclusions, and importance sliders.
+- Google sign-in, first-name greeting, private memory shelves, and sign-out.
+- Voice-to-text input with a typed-text alternative.
+- Real per-request OpenPOM predictions, SMILES, model scores, and molecular embedding neighbors.
+- Step-by-step home scent references using familiar materials, selected using model evidence.
+- Perfume names, source links, and brand-page photos when metadata is accessible.
+- Google Shopping and Amazon search links for the selected perfumes.
+- Responsive scrapbook-inspired interface with downloadable text keepsakes.
 
-The ranking rewards predicted wanted descriptors and penalizes unwanted descriptors. Its score is a search heuristic, not a measured percentage of similarity to a remembered smell.
+## The model’s role
 
-## Technology
+OpenPOM accepts **single-molecule SMILES**, not memories, fragrance notes, or mixtures. The LLM bridges the language-to-molecule step, while OpenPOM supplies molecular odor evidence that the final LLM must use.
+
+The live runtime defaults to upstream **experiments_1** for a smaller CPU footprint. It supports 1–10 upstream checkpoints and reports the number actually used. Embeddings always come from experiments_1; independently trained embedding spaces are not averaged. A single-checkpoint deployment must not be described as reproducing an ensemble benchmark.
+
+The repository also retains a genuine historical 10-checkpoint prediction dataset for regression tests and reproducibility. The live frontend loads catalog metadata only; historical predictions are not substituted for live inference.
+
+## Recommendation limits
+
+Home instructions are approved sensory exercises selected by the LLM, rather than unrestricted generated chemistry recipes. They evoke parts of a memory using separate familiar materials; they are not validated blends, wearable formulations, or exact reconstructions.
+
+Perfume recommendations are limited to **seven sourced catalog entries**. Candidate selection uses confirmed notes and model-supported scent families, followed by LLM selection. The finished perfume’s formula and combined smell are not predicted by OpenPOM. Product photos are read from brand-page metadata when available; an explicitly labeled illustration appears if the image cannot be retrieved or displayed. Shopping links are search queries, not verified offers. Prices, stock, seller authenticity, and resemblance are not guaranteed.
+
+The model does not assess safety, allergies, regulations, skin suitability, or scent intensity. Some catalog structures leave stereochemistry unspecified. Exclusions filter known catalog notes; they do not establish the absence of an ingredient or allergen in a product.
+
+## Architecture
 
 | Layer | Technology |
 | --- | --- |
-| Interface | HTML, CSS, JavaScript |
-| Molecular predictions | OpenPOM, DeepChem, DGL, PyTorch |
-| Molecular validation and drawings | RDKit |
-| On-device language assistance | Transformers.js, SmolLM2 |
-| Voice input | Browser Speech Recognition API |
-| Accounts and private storage | Supabase Auth, Google OAuth, PostgreSQL row-level security |
-| Optional developer API | Python, FastAPI |
-| Static hosting | GitHub Pages or Netlify |
+| Interface | HTML, CSS, JavaScript modules |
+| Speech input | Browser SpeechRecognition where supported |
+| Language model | Server-side Groq API or local Ollama |
+| API | Python 3.10, FastAPI, HTTPX |
+| Molecular ML | OpenPOM, PyTorch CPU, DeepChem, DGL, RDKit |
+| Accounts and storage | Supabase Auth, Google OAuth, PostgreSQL row-level security |
+| Delivery | GitHub Pages frontend workflow and Python backend Docker image |
 
-## Privacy and personal shelves
+GitHub Pages serves the interface; live inference requires a separately running Python backend. LLM credentials belong only in that backend’s environment. Google OAuth client secrets belong in Supabase. Public frontend configuration contains only the API origin, Supabase URL, and publishable key.
 
-Visitors can explore a scent memory without signing in. When the account service is connected, **Continue with Google** creates an account or signs a returning visitor in. The header displays their first name, and saved memories belong to their authenticated user ID.
+## Privacy and access
 
-Database row-level security restricts memory access to the owner. Account names are used for display, never for authorization. Signing out clears the displayed shelf, and late responses from a previous account are discarded.
+Submitting a memory sends its text to the backend and the configured LLM provider. Saving is a separate user action. Supabase stores saved memories under the authenticated user, with row-level security enforcing ownership. The backend validates bearer tokens through Supabase, limits per-account requests, and runs one live inference job at a time per process. These in-memory limits target a single-worker portfolio deployment, not a distributed production service.
 
-Voice recognition depends on browser support and microphone permission. Some browsers process speech through their provider’s service. Whiffy does not store voice recordings.
+Voice transcription may send audio to the browser provider’s speech service. Whiffy does not store recordings. Brand photos and shopping links contact external services. There are no affiliate links.
 
-## Scope and limitations
+## Repository
 
-Whiffy offers a **scent interpretation**, not an exact reconstruction of a memory.
-
-- OpenPOM predicts individual molecules, not finished perfumes, household materials, or mixtures.
-- Molecular rankings do not establish which chemicals were present in the original scene.
-- Household references are exploratory scent experiences, not validated blending or skin-use recipes.
-- Perfume suggestions use published note overlap separately from OpenPOM; their actual formulas are unknown.
-- The model does not assess safety, allergenicity, exposure, or suitability for use.
-- Some catalog structures leave stereochemistry unspecified.
-- Google sign-in and cloud saving require an owner-configured authentication service. Voice and on-device AI availability vary by browser.
-
-## Project structure
-
-| Folder | Purpose |
-| --- | --- |
-| `dist/` | Browser application, molecular prediction cache, and visual assets |
-| `backend/` | Molecular catalog, OpenPOM inference, and optional FastAPI service |
-| `supabase/` | Private memory schema, access policies, and database isolation checks |
-| `scripts/` | Hosting configuration helpers |
-| `tests/` | Molecular matching, account-boundary, and voice-input checks |
-| `.github/workflows/` | Automated checks and GitHub Pages deployment |
+- `dist/`: web interface, catalog, account and voice modules, historical prediction fixture.
+- `backend/`: authenticated API, grounded recommendation pipeline, live OpenPOM runtime, curated references, and model downloader.
+- `supabase/`: database schema, ownership policies, and isolation checks.
+- `tests/`: JavaScript checks for model ranking, accounts, speech, and live API behavior.
+- `.github/workflows/`: frontend test and deployment workflow plus backend unit tests.
+- `Dockerfile`: Python CPU backend image; upstream checkpoints download during build.
 
 ## Validation
 
-The JavaScript suite contains **25 passing checks** covering prediction-data integrity, scent matching, unwanted-note handling, account ownership boundaries, late-response isolation, and speech-input behavior.
-
-Account and speech-provider checks use mocks. A live Google OAuth deployment, real-database isolation, and actual microphone transcription must be verified in the configured deployment; they are not implied by the automated test count.
+Automated checks cover label validation, wanted/excluded-note handling, live evidence propagation into the final LLM prompt, rejection of invented molecule/product IDs, authentication, explicit failure behavior, compact saved snapshots, account switching, and microphone lifecycle behavior. The real CPU checkpoint was also exercised against all 30 catalog molecules and through an integration run with scripted LLM responses. External LLM calls, Google OAuth, product-image availability, and deployed database policies still require deployment-specific verification.
 
 ## References
 
-- [OpenPOM](https://github.com/ARY2260/openpom) — open-source Principal Odor Map replication.
-- Lee et al., [A principal odor map unifies diverse tasks in olfactory perception](https://doi.org/10.1126/science.ade4401), *Science* (2023).
-- [Transformers.js](https://github.com/huggingface/transformers.js) and [SmolLM2](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct).
-- Brand sources for perfume notes are linked in the app and recorded in `dist/data.js`.
+- [OpenPOM source and checkpoints](https://github.com/ARY2260/openpom)
+- [A principal odor map unifies diverse tasks in olfactory perception — Lee et al., Science (2023)](https://doi.org/10.1126/science.ade4401)
+- Individual compound and brand source links are included with the app’s references.
 
-The broader relationship between scent and memory has existing research and creative work. Whiffy is an independent software exploration of that space.
-
-Created by **Kavya Balaji Singh**.
+Created by **Kavya Singh**.

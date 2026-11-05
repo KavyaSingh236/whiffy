@@ -1,0 +1,271 @@
+{
+  "homes": [
+    {
+      "id": "coffee",
+      "name": "A little coffee moment",
+      "item": "Coffee grounds you already have",
+      "tags": [
+        "coffee",
+        "roasted",
+        "nutty"
+      ],
+      "steps": [
+        "Put a small spoonful of dry coffee grounds in a cup.",
+        "Keep it separate from the other references and notice the aroma from a comfortable distance.",
+        "Think of it as the roasted part of your memory, rather than the whole scene."
+      ],
+      "note": "A familiar material reference, not a molecularly validated substitute."
+    },
+    {
+      "id": "vanilla",
+      "name": "A soft vanilla reference",
+      "item": "Vanilla extract, if already available",
+      "tags": [
+        "vanilla",
+        "sweet",
+        "creamy"
+      ],
+      "steps": [
+        "Put a drop of food vanilla extract on a separate paper strip.",
+        "Let the alcohol evaporate before checking the scent at a comfortable distance.",
+        "Compare its sweet character with your memory; skip it if it feels too dessert-like."
+      ],
+      "note": "An optional scent reference. Do not apply the strip or extract to your skin."
+    },
+    {
+      "id": "orange",
+      "name": "A bright citrus opening",
+      "item": "Fresh orange or lemon peel",
+      "tags": [
+        "citrus",
+        "orange",
+        "lemon",
+        "fresh"
+      ],
+      "steps": [
+        "Place a small piece of fresh citrus peel in its own dish.",
+        "Gently bend the peel away from your face, then leave it in the dish.",
+        "Notice whether this is the bright, fresh part you remember."
+      ],
+      "note": "Use the fruit peel as it is; no extraction, heating, or essential oils."
+    },
+    {
+      "id": "mint",
+      "name": "A green, fresh accent",
+      "item": "Fresh mint or basil, if available",
+      "tags": [
+        "mint",
+        "herbal",
+        "green",
+        "leafy",
+        "fresh"
+      ],
+      "steps": [
+        "Place one fresh herb leaf on a separate dish.",
+        "Gently rub it between your fingers and set it down.",
+        "Compare the green or minty impression with the memory."
+      ],
+      "note": "Skip any material you are sensitive to. A fresh leaf is a mixture, not a model-tested molecule."
+    },
+    {
+      "id": "flowers",
+      "name": "A familiar floral reference",
+      "item": "A familiar rose or jasmine flower you already have",
+      "tags": [
+        "floral",
+        "rose",
+        "jasmin",
+        "powdery"
+      ],
+      "steps": [
+        "Keep a familiar fragrant flower in a small vase.",
+        "Experience its scent naturally without pressing it against your face.",
+        "Notice whether the floral character belongs in the memory or feels too strong."
+      ],
+      "note": "No flower available? Skip this part—there is no need to purchase one."
+    },
+    {
+      "id": "wood",
+      "name": "The quiet woody detail",
+      "item": "A clean, familiar unfinished wooden object",
+      "tags": [
+        "woody",
+        "cedar",
+        "sandalwood",
+        "hay"
+      ],
+      "steps": [
+        "Choose a familiar clean wooden object, only if it already has a noticeable natural scent.",
+        "Leave it separate from the other references. Do not sand, burn, or heat it.",
+        "Use it as a reminder of the scene, rather than an exact woody accord."
+      ],
+      "note": "Do not smell treated wood, furniture coatings, mold, or dusty objects."
+    },
+    {
+      "id": "tea",
+      "name": "A gentle tea reference",
+      "item": "Dry tea leaves you already own",
+      "tags": [
+        "herbal",
+        "earthy",
+        "green",
+        "hay",
+        "roasted"
+      ],
+      "steps": [
+        "Place a little dry tea in a separate cup.",
+        "Notice it at a comfortable distance without inhaling loose particles.",
+        "Compare its leafy, dry character with the scene you remember."
+      ],
+      "note": "This evokes one aspect of the memory; it does not reproduce rain, soil, or mustiness."
+    }
+  ],
+  "perfumes": [
+    {
+      "name": "Coffee Break",
+      "brand": "Maison Margiela · REPLICA",
+      "notes": [
+        "Coffee accord",
+        "Milk mousse",
+        "Lavender",
+        "Spearmint"
+      ],
+      "tags": [
+        "coffee",
+        "creamy",
+        "lavender",
+        "mint",
+        "roasted"
+      ],
+      "color": "#bd916e",
+      "url": "https://www.maisonmargiela.com/en-us/replica-coffee-break-eau-de-toilette-S33YX0075S11917961.html",
+      "difference": "Includes lavender and mint; it may feel softer and more aromatic than literal brewed coffee.",
+      "id": "perfume-0"
+    },
+    {
+      "name": "By the Fireplace",
+      "brand": "Maison Margiela · REPLICA",
+      "notes": [
+        "Chestnut accord",
+        "Clove",
+        "Smoky woods",
+        "Vanilla"
+      ],
+      "tags": [
+        "smoky",
+        "woody",
+        "vanilla",
+        "sweet",
+        "clove",
+        "spicy",
+        "nutty",
+        "roasted"
+      ],
+      "color": "#a76c4e",
+      "url": "https://www.maisonmargiela-fragrances.us/fragrances/replica-eau-de-toilette/replica-by-the-fireplace/MM005.html?geo=false",
+      "difference": "Smoke and chestnut are central; it may be much sweeter or smokier than the memory.",
+      "id": "perfume-1"
+    },
+    {
+      "name": "When the Rain Stops",
+      "brand": "Maison Margiela · REPLICA",
+      "notes": [
+        "Aquatic accord",
+        "Rose",
+        "Pink pepper",
+        "Pine needle"
+      ],
+      "tags": [
+        "fresh",
+        "rose",
+        "pine",
+        "green",
+        "floral",
+        "spicy"
+      ],
+      "color": "#8ba7a4",
+      "url": "https://www.maisonmargiela-fragrances.us/fragrances/replica-eau-de-toilette/replica-when-the-rain-stops/3614273612661.html",
+      "difference": "An aquatic floral interpretation, not a recreation of wet soil or true petrichor.",
+      "id": "perfume-2"
+    },
+    {
+      "name": "Philosykos",
+      "brand": "Diptyque · Eau de toilette",
+      "notes": [
+        "Fig leaves",
+        "Milky fig",
+        "Fig wood"
+      ],
+      "tags": [
+        "green",
+        "leafy",
+        "woody",
+        "milky",
+        "creamy",
+        "fruity"
+      ],
+      "color": "#879267",
+      "url": "https://us.diptyqueparis.com/en-us/products/eau-de-toilette-philosykos-philo100v2",
+      "difference": "A fig-tree interpretation; it may add milky fruit that was absent from your memory.",
+      "id": "perfume-3"
+    },
+    {
+      "name": "Eau Rose",
+      "brand": "Diptyque · Eau de toilette",
+      "notes": [
+        "Damascena rose",
+        "Centifolia rose",
+        "Litchi accord",
+        "Ambroxan"
+      ],
+      "tags": [
+        "rose",
+        "floral",
+        "fruity",
+        "sweet"
+      ],
+      "color": "#c294a0",
+      "url": "https://us.diptyqueparis.com/en-us/products/eau-de-toilette-eau-rose-rose100v2",
+      "difference": "A rose-focused fragrance with a fruity detail, rather than a complete garden scene.",
+      "id": "perfume-4"
+    },
+    {
+      "name": "Olène",
+      "brand": "Diptyque · Eau de toilette",
+      "notes": [
+        "Wisteria",
+        "Honeysuckle",
+        "Jasmine",
+        "Narcissus"
+      ],
+      "tags": [
+        "jasmin",
+        "floral",
+        "sweet"
+      ],
+      "color": "#9da886",
+      "url": "https://us.diptyqueparis.com/en-us/products/eau-de-toilette-olene-olene100v3",
+      "difference": "A full white-flower bouquet; it will not supply the coffee or woody parts of a memory.",
+      "id": "perfume-5"
+    },
+    {
+      "name": "Wood Sage & Sea Salt",
+      "brand": "Jo Malone London · Cologne",
+      "notes": [
+        "Ambrette seeds",
+        "Sea salt",
+        "Sage"
+      ],
+      "tags": [
+        "herbal",
+        "woody",
+        "fresh",
+        "musk"
+      ],
+      "color": "#969e93",
+      "url": "https://www.jomalone.com/scents/woody/wood-sage-sea-salt",
+      "difference": "A mineral, herbal interpretation; sea salt is a fragrance note, not a claim about a smell-producing salt molecule.",
+      "id": "perfume-6"
+    }
+  ]
+}

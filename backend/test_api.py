@@ -2,6 +2,8 @@ import asyncio
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 from app import app
+from access import authorized
+app.dependency_overrides[authorized] = lambda: "test-user"
 client=TestClient(app)
 def test_cache_is_real():
     response=client.get('/api/predictions')
@@ -20,3 +22,19 @@ def test_llm_labels_allowlisted_and_negation_preserved():
     assert response.json()['avoid']==['smoky']
 def test_static_frontend_available():
     assert 'A little whiff of a memory' in client.get('/').text
+
+def test_live_pipeline_failure_is_explicit():
+    with patch('app.recreate', new=AsyncMock(side_effect=RuntimeError('private details'))):
+        r=client.post('/api/recreate',json={'memory':'My childhood rose garden', 'notes':['rose']})
+    assert r.status_code==503
+    assert 'No simulated result' in r.json()['detail']
+    assert 'private details' not in r.text
+
+def test_live_endpoint_requires_authentication():
+    app.dependency_overrides.clear()
+    try:
+        with patch.dict('os.environ', {'SUPABASE_URL':'https://example.supabase.co','SUPABASE_PUBLISHABLE_KEY':'public'}):
+            r=client.post('/api/recreate',json={'memory':'My childhood rose garden','notes':['rose']})
+        assert r.status_code==401
+    finally:
+        app.dependency_overrides[authorized] = lambda: 'test-user'

@@ -28,6 +28,7 @@ jobs:
       - name: Configure Google accounts
         run: node scripts/configure-auth.mjs
         env:
+          WHIFFY_API_URL: ${{ vars.WHIFFY_API_URL }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
       - name: Configure GitHub Pages
