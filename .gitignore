@@ -1,0 +1,7 @@
+backend/models/
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+*.pyc
+whiffy-source.zip

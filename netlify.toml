@@ -1,0 +1,5 @@
+[build]
+  command = "node scripts/configure-auth.mjs && npm test"
+  publish = "dist"
+[build.environment]
+  NODE_VERSION = "22"
