@@ -94,3 +94,83 @@ function openAccount(after='shelf'){
  const available=accounts.status==='ready';$('#googleContinue').disabled=!available;
  $('#accountMessage').textContent=available?'One Google account. A shelf that follows you.':accounts.status==='loading'?'Checking account availability…':'Sign-in isn’t available yet. Sign-in is needed for the live memory assistant.';
  $('#accountDialog').showModal();
+}
+async function signIn(){
+ const button=$('#googleContinue');button.disabled=true;$('#accountMessage').textContent='Opening Google securely…';
+ try{
+  if(state.memory.length>=10){const draft={...state,id:state.savedId||'',date:new Date().toISOString(),after:$('#accountDialog').dataset.after||'shelf'};sessionStorage.setItem('whiffy-pending-memory',JSON.stringify(draft));}
+  else sessionStorage.setItem('whiffy-pending-memory',JSON.stringify({after:'shelf'}));
+  await accounts.signIn(new URL('./',import.meta.url).href);
+ }catch(error){$('#accountMessage').textContent=error.message;button.disabled=accounts.status!=='ready';}
+}
+function finishAccountReturn(){
+ if(authReturnHandled||!ready||!accounts.user||accounts.status!=='ready')return;
+ authReturnHandled=true;let pending=null;try{pending=JSON.parse(sessionStorage.getItem('whiffy-pending-memory'));sessionStorage.removeItem('whiffy-pending-memory')}catch{}
+ if(!pending)return;
+ const draft=cleanMemory(pending);
+ if(draft){state={...draft,savedId:null,tab:'molecules'};state.notes=state.notes.filter(n=>data.labels.includes(n));state.avoid=state.avoid.filter(n=>data.labels.includes(n));}
+ if(pending.after==='save'&&state.notes.length){location.hash='results';toast('Welcome back. Tap Save memory to add this scent echo to your shelf.');}
+ else location.hash='shelf';
+}
+async function refreshShelf(){
+ if(accounts.status!=='ready'||!accounts.user)return;
+ const ticket=++shelfRequest,owner=accounts.user.id;shelfStatus='loading';shelfError='';
+ if(ready&&location.hash==='#shelf')renderShelf();
+ try{const records=await accounts.list();if(ticket!==shelfRequest||accounts.user?.id!==owner)return;saved=records.filter(m=>m.notes.length&&m.notes.every(n=>data?.labels.includes(n)));shelfStatus='ready';}
+ catch(error){if(ticket!==shelfRequest||accounts.user?.id!==owner)return;saved=[];shelfStatus='error';shelfError=error.message;}
+ updateCount();if(ready&&location.hash==='#shelf')renderShelf();
+}
+async function signOut(){
+ const button=$('#signOutButton');if(button)button.disabled=true;
+ try{try{sessionStorage.removeItem('whiffy-pending-memory')}catch{}await accounts.signOut();$('#accountDialog').close();location.hash='studio';toast('You’re signed out. Your saved memories stay in your account.');}
+ catch(error){toast(error.message);if(button?.isConnected)button.disabled=false;}
+}
+async function saveMemory(){
+ if(!accounts.user){openAccount('save');return}
+ const owner=accounts.user.id,button=$('#saveMemory');button.disabled=true;button.textContent='Saving to your shelf…';
+ try{
+  const entry={id:state.savedId||newMemoryId(),date:new Date().toISOString(),memory:state.memory,title:state.title,notes:state.notes,avoid:state.avoid,weights:state.weights,owned:state.owned,method:state.method,guide:state.guide,live:state.live};
+  const stored=await accounts.save(entry);if(accounts.user?.id!==owner)return;
+  saved=[stored,...saved.filter(m=>m.id!==stored.id)];state.savedId=stored.id;shelfStatus='ready';updateCount();
+  if(button.isConnected)button.textContent='♡ Saved on your shelf';toast('A little memory, saved just for you.');
+ }catch(error){toast(error.message);if(button.isConnected)button.textContent='♡ Save memory';}
+ finally{if(button.isConnected)button.disabled=false;}
+}
+function renderShelf(){
+ if(!accounts.user){$('#app').innerHTML=`<section class="workspace"><div class="shelf-header"><div><span class="eyebrow">YOUR LITTLE COLLECTION</span><h1>A shelf, <em>just for you.</em></h1><p>Your scent stories belong to you. Sign in to save them privately and revisit them on another device.</p></div></div><div class="empty-state"><div class="empty-icon">♡</div><h2>Keep your memories <em>close.</em></h2><p>One Google sign-in creates your account or brings you back to your personal shelf.</p><button class="google-auth" id="shelfSignIn"><span class="google-g" aria-hidden="true">G</span>Continue with Google</button><p class="fineprint">Sign in to use the live memory assistant and OpenPOM pipeline.</p></div></section>`;$('#shelfSignIn').onclick=()=>openAccount('shelf');return}
+ const name=accountName(accounts.user);
+ const body=shelfStatus==='loading'?'<div class="empty-state"><div class="loader"></div><h2>Opening your little collection…</h2></div>':shelfStatus==='error'?`<div class="empty-state"><h2>Your shelf needs a moment.</h2><p>${esc(shelfError)}</p><button class="secondary" id="retryShelf">Try again</button></div>`:saved.length?`<div class="shelf-grid">${saved.map(m=>`<article class="shelf-card"><div class="shelf-card-art">✳</div><div class="shelf-card-body"><span class="eyebrow">${new Date(m.date).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</span><h3>${esc(m.title||'A little memory')}</h3><p>${esc(m.memory)}</p><div class="chips">${m.notes.slice(0,4).map(n=>`<span class="chip">${esc(nice(n))}</span>`).join('')}</div><div class="shelf-actions"><button class="text-btn" data-open="${esc(m.id)}">Revisit this memory ↗</button><button class="text-btn" data-delete="${esc(m.id)}" aria-label="Delete ${esc(m.title)}">Delete</button></div></div></article>`).join('')}</div>`:'<div class="empty-state"><div class="empty-icon">♡</div><h2>A shelf waiting for <em>your stories.</em></h2><p>Create a scent echo and tap “Save memory” to keep it here.</p><a class="primary" href="#studio">Start with a memory <span>↗</span></a></div>';
+ $('#app').innerHTML=`<section class="workspace"><div class="shelf-header"><div><span class="eyebrow">YOUR LITTLE COLLECTION</span><h1>${esc(name)}’s memory <em>shelf.</em></h1><p>Private to your account. Ready wherever you sign in.</p></div><a class="primary" href="#studio" id="newMemory">A new little memory <span>＋</span></a></div>${body}</section>`;
+ $('#newMemory').onclick=()=>{state=blankState()};if($('#retryShelf'))$('#retryShelf').onclick=refreshShelf;
+ document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{const m=saved.find(x=>x.id===b.dataset.open);state={...m,avoid:m.avoid||[],weights:m.weights||{},owned:m.owned||[],savedId:m.id,tab:'molecules'};location.hash='results'});
+ document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{if(b.dataset.confirm!=='yes'){b.dataset.confirm='yes';b.textContent='Confirm delete';return}const owner=accounts.user?.id;b.disabled=true;try{await accounts.remove(b.dataset.delete);if(owner!==accounts.user?.id)return;saved=saved.filter(m=>m.id!==b.dataset.delete);if(state.savedId===b.dataset.delete)state.savedId=null;updateCount();renderShelf();toast('Memory removed from your account.');}catch(error){toast(error.message);b.disabled=false;}});
+}
+function download(){
+ const {ranked,refs,perfumes}=calculations();
+ const text=`WHIFFY — A little whiff of a memory\n${state.title}\n\nYOUR MEMORY\n${state.memory}\n\nCONFIRMED NOTES\n${state.notes.map(nice).join(', ')}\nAvoid: ${state.avoid.map(nice).join(', ')||'none'}\n\nOPENPOM MOLECULAR REFERENCES (not a blend)\n${ranked.slice(0,5).map(m=>`${m.name}\nSMILES: ${m.smiles}\nRank score: ${m.score.toFixed(3)} (not similarity accuracy)\n${m.matches.slice(0,4).map(n=>`${nice(n.label)}: ${n.value.toFixed(3)}`).join(', ')}\n${m.source}`).join('\n\n')}\n\nAT-HOME SCENT REFERENCES\n${state.guide.summary}\n${refs.slice(0,4).map(r=>`${r.name}: ${r.item}\n${r.steps.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n${r.note}`).join('\n\n')}\n\nPERFUMES TO EXPLORE (published-note overlap, not OpenPOM mixture predictions)\n${perfumes.map(p=>`${p.name} — ${p.brand}\nPublished notes: ${p.notes.join(', ')}\n${p.difference}\n${p.url}`).join('\n\n')}\n\nMODEL & LIMITS\nFresh OpenPOM predictions (${state.live?.evidence.ensemble_size||1} checkpoint(s)); generated ${state.live?.generated_at||"unknown"}. Single molecules only. No exact reconstruction, mixture validation, safety assessment, or guarantees. Household references are sensory exercises, not wearable recipes.\nhttps://github.com/ARY2260/openpom\nMemory interpretation: ${state.method}\nGuide: ${state.guide.method}\nGenerated ${new Date().toISOString()}\n`;
+ const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='whiffy-'+(state.title||'memory').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,45)+'.txt';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);toast('Your little keepsake is ready.');
+}
+function render(){
+ voiceCleanup?.();voiceCleanup=null;
+ renderAccountHeader();updateCount();const hash=location.hash.slice(1);document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===hash));
+ if(error){$('#app').innerHTML='<div class="loading-screen"><h2>The scent studio needs a moment.</h2><p>We couldn’t load the scent studio’s catalog. Please reload to try again.</p><button class="primary" id="retry">Try again ↻</button></div>';$('#retry').onclick=()=>location.reload();return}
+ if(!ready){$('#app').innerHTML='<div class="loading-screen"><div class="loader"></div><h2>Gathering little scent echoes…</h2><p>Preparing the scent studio.</p></div>';return}
+ if(hash==='brief')renderBrief();else if(hash==='results')renderResults();else if(hash==='shelf')renderShelf();else{renderHome();if(hash==='studio'||hash==='how')requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth',block:'start'}))}
+ if(['brief','results','shelf'].includes(hash))window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',render);
+$('#googleContinue').onclick=signIn;
+$('#accountDialog').addEventListener('close',()=>{if(ready&&['','#studio','#how'].includes(location.hash))renderHome()});
+accounts.subscribe(({user,status})=>{
+ const id=user?.id||null;
+ if(id!==activeAccountId){const previous=activeAccountId;activeAccountId=id;shelfRequest++;saved=[];shelfStatus='idle';shelfError='';if(previous){state=blankState();voiceCleanup?.();voiceCleanup=null;}updateCount();if(ready)render();}
+ renderAccountHeader();
+ if($('#accountDialog').open){$('#googleContinue').disabled=status!=='ready';$('#accountMessage').textContent=status==='ready'?'One Google account. A shelf that follows you.':status==='loading'?'Checking account availability…':'Sign-in isn’t available yet. Sign-in is needed for the live memory assistant.';}
+ if(status==='ready'&&user){setTimeout(()=>{finishAccountReturn();if(ready)refreshShelf()},0);}
+});
+configReady=fetch(new URL('./config.json',import.meta.url)).then(r=>{if(!r.ok)throw Error();return r.json()}).then(config=>{backendOrigin=apiOrigin(config);return accounts.init(config)}).catch(()=>accounts.init({}));
+$('#aboutButton').onclick=()=>$('#scienceDialog').showModal();
+for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>document.getElementById(b.dataset.close).close();
+for(const d of document.querySelectorAll('dialog'))d.onclick=e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}};
+render();
+fetch('catalog.json').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{if(!d.molecules?.length||d.labels?.length!==138)throw Error();data=d;ready=true;render();finishAccountReturn();if(accounts.user&&accounts.status==='ready')refreshShelf()}).catch(e=>{error=e;render()});
